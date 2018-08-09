@@ -1,0 +1,107 @@
+box: oraclelinux:7-slim
+build:
+   steps:
+     - script:
+        name: Sample pipeline to build Docker image based on image from OCIR
+        code: | 
+          echo "Create the required Dockerfile to build image"
+          ./dockerfile.sh
+     - script:
+        name: Validate required files are present to build Docker image
+        code: | 
+           if [ ! -f Dockerfile ]
+           then
+               echo "Dockerfiles is not created!!!"
+               exit 1
+           fi
+
+test:
+   steps:
+     - internal/docker-build:
+         name: Building docker images for test
+         dockerfile: Dockerfile
+         image-name: hello-node:$VERSION
+         build-args: "https_proxy=$https_proxy"
+         nocache: true
+         registry-auth-config: |
+           {
+            "$OCIR_DOCKER_REGISTRY": {
+            "username": "$OCIR_DOCKER_USERNAME",
+            "password": "$OCIR_DOCKER_PASSWORD"
+              }
+           }
+     - script:
+         name: Run Tests
+     - internal/docker-run:
+         image: hello-node:$VERSION
+         name: testContainer
+     - script:
+         name: Test the container
+         code: |
+             unset http_proxy
+             if  curlOutput=`curl -s testContainer:8080`; then
+                 if [ "$curlOutput" == "Wercker pipeline demo!" ]; then
+                     echo "Test passed: container gave expected response"
+                 else
+                     echo "Test failed: container gave unexpted response: "$curlOutput
+                     exit 1
+                fi
+             else
+                echo "Test failed: container did not respond"
+                exit 1;
+             fi
+ 
+             echo "Test result is $curlOutput"
+     - internal/docker-kill:
+         name: testContainer
+
+release-ocir:
+   steps:
+     - internal/docker-build:
+         name: Building docker images for release-prod
+         dockerfile: Dockerfile
+         image-name: hello-node:$VERSION
+         build-args: "https_proxy=$https_proxy"
+         nocache: true
+         registry-auth-config: |
+           {
+            "$OCIR_DOCKER_REGISTRY": {
+            "username": "$OCIR_DOCKER_USERNAME",
+            "password": "$OCIR_DOCKER_PASSWORD"
+              }
+           }
+
+     - internal/docker-push:
+         name: Push image to Prod repostories
+         image-name: hello-node:$VERSION
+         username: $OCIR_DOCKER_USERNAME
+         password: $OCIR_DOCKER_PASSWORD
+         registry: $OCIR_DOCKER_REGISTRY
+         repository: $OCIR_DOCKER_REPO
+         tag: $VERSION
+
+
+deploy-oke:
+   steps:
+     - script:
+        name: Create deployment file
+        cwd: kubernetes
+        code: |
+            export DOCKER_REPO=$OCIR_DOCKER_REPO
+            export IMAGESECRET=$OKE_IMAGESECRET
+            ./deployment.sh
+     - kubectl:
+        name: Deploy to OKE
+        server: $OKE_MASTER
+        token: $OKE_TOKEN
+        insecure-skip-tls-verify: true
+        command: --kubeconfig admin.conf apply -f kubernetes/deployment.yml
+
+     - kubectl:
+        name: Service to kubernetes
+        server: $OKE_MASTER
+        token: $OKE_TOKEN
+        insecure-skip-tls-verify: true
+        command: --kubeconfig admin.conf apply -f kubernetes/service.yml    
+
+
