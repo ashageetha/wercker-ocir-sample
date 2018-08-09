@@ -52,8 +52,8 @@ test:
              fi
  
              echo "Test result is $curlOutput"
-     - internal/docker-kill:
-         name: testContainer
+    # - internal/docker-kill:
+    #     name: testContainer
 
 release-ocir:
    steps:
