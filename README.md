@@ -1,2 +1,2 @@
 # wercker-ocir-sample
-Test run 2
+Test run
