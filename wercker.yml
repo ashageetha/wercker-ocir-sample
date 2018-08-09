@@ -43,7 +43,7 @@ test:
                  if [ "$curlOutput" == "Wercker pipeline demo!" ]; then
                      echo "Test passed: container gave expected response"
                  else
-                     echo "Test failed: container gave unexpted response: "$curlOutput
+                     echo "Test failed: container gave unexpected response: "$curlOutput
                      exit 1
                 fi
              else
