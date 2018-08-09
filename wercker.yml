@@ -79,6 +79,11 @@ release-ocir:
          registry: $OCIR_DOCKER_REGISTRY
          repository: $OCIR_DOCKER_REPO
          tag: $VERSION
+         
+     - Cleanup src:
+         name: Cleanup files
+         code: |
+             rm Dockerfile
 
 
 deploy-oke:
