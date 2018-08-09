@@ -80,7 +80,7 @@ release-ocir:
          repository: $OCIR_DOCKER_REPO
          tag: $VERSION
          
-     - Cleanup src:
+     - script:
          name: Cleanup files
          code: |
              rm Dockerfile
