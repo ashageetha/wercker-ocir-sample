@@ -81,7 +81,7 @@ release-ocir:
          tag: $VERSION
          
      - script:
-         name: Cleanup files
+         name: Cleanup Dockerfile
          code: |
              rm Dockerfile
 
