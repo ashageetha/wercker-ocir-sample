@@ -100,13 +100,13 @@ deploy-oke:
         server: $OKE_MASTER
         token: $OKE_TOKEN
         insecure-skip-tls-verify: true
-        command: --kubeconfig admin.conf apply -f kubernetes/deployment.yml
+        command:  apply -f kubernetes/deployment.yml
 
      - kubectl:
         name: Service to kubernetes
         server: $OKE_MASTER
         token: $OKE_TOKEN
         insecure-skip-tls-verify: true
-        command: --kubeconfig admin.conf apply -f kubernetes/service.yml    
+        command:  apply -f kubernetes/service.yml    
 
 
